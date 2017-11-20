@@ -1,5 +1,7 @@
 #include <iostream>
 #include <curl/curl.h>
+#include <thread>
+#include <future>
 using namespace std;
 
 int main(int argc, char* argv[])
@@ -11,7 +13,7 @@ int main(int argc, char* argv[])
 
     char* name = argv[1];
     CURL *curl;
-    CURLcode res;
+    //CURLcode res;
 
     curl = curl_easy_init();
     if(curl) {
@@ -20,13 +22,33 @@ int main(int argc, char* argv[])
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
         curl_easy_setopt(curl, CURLOPT_NOBODY, true);
 
-        res = curl_easy_perform(curl);
+        //res = curl_easy_perform(curl);
 
-        if(res != CURLE_OK){
+std::promise<CURLcode> promise;
+            auto resp = promise.get_future();
+
+            std::thread req([curl, &promise]() {
+            	promise.set_value(curl_easy_perform(curl));
+            });
+
+            req.detach();
+
+            auto res = resp.get();
+
+	    long response_code;
+
+            if(res == CURLE_OK) {
+
+            	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+            	std::cout << "Response code: " << response_code << std::endl;
+	    }
+
+            curl_easy_cleanup(curl);
+/*        if(res != CURLE_OK){
             cout << "ERROR: " << curl_easy_strerror(res) << endl;
         }
         else {
-            char *url = NULL;
+            //char *url = NULL;
             curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &url);
             if(url){
                 cout << "Redirect to: " << url << endl;
@@ -37,7 +59,7 @@ int main(int argc, char* argv[])
             cout << "Response code: " << response_code << endl;
         }
 
-        curl_easy_cleanup(curl);
+        curl_easy_cleanup(curl); */
     }
     return 0;
 }
