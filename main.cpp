@@ -18,13 +18,13 @@ int main(int argc, char* argv[])
     curl = curl_easy_init();
     if(curl) {
         curl_easy_setopt(curl, CURLOPT_URL, name);
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
         curl_easy_setopt(curl, CURLOPT_NOBODY, true);
 
         //res = curl_easy_perform(curl);
 
-std::promise<CURLcode> promise;
+std::promise<long> promise;
             auto resp = promise.get_future();
 
             std::thread req([curl, &promise]() {
