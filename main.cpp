@@ -13,7 +13,6 @@ int main(int argc, char* argv[])
 
     char* name = argv[1];
     CURL *curl;
-    //CURLcode res;
 
     curl = curl_easy_init();
     if(curl) {
@@ -22,44 +21,27 @@ int main(int argc, char* argv[])
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
         curl_easy_setopt(curl, CURLOPT_NOBODY, true);
 
-        //res = curl_easy_perform(curl);
-
 std::promise<long> promise;
             auto resp = promise.get_future();
 
             std::thread req([curl, &promise]() {
-            	promise.set_value(curl_easy_perform(curl));
-            });
+            	promise.set_value(response_code);
 
-            req.detach();
-
-            auto res = resp.get();
-
-	    long response_code;
+            auto res = curl_easy_perform(curl);
 
             if(res == CURLE_OK) {
 
-            	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-            	std::cout << "Response code: " << response_code << std::endl;
-	    }
+              	promise.set_value(curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code));
+            }
+          });
+
+            req.detach();
+
+            response_code = resp.get();
+
+            std::cout << "Response code: " << response_code << std::endl;
 
             curl_easy_cleanup(curl);
-/*        if(res != CURLE_OK){
-            cout << "ERROR: " << curl_easy_strerror(res) << endl;
-        }
-        else {
-            //char *url = NULL;
-            curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &url);
-            if(url){
-                cout << "Redirect to: " << url << endl;
-            }
-
-            long response_code;
-            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-            cout << "Response code: " << response_code << endl;
-        }
-
-        curl_easy_cleanup(curl); */
     }
     return 0;
 }
