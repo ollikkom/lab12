@@ -31,9 +31,9 @@ std::promise<long> promise;
 
             if(res == CURLE_OK) {
 
-              curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &check_code)
+              curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &check_code);
               promise.set_value(check_code);
-                
+
             }
           });
 
