@@ -23,22 +23,23 @@ int main(int argc, char* argv[])
 
 std::promise<long> promise;
             auto resp = promise.get_future();
-            long response_code;
-            
-            std::thread req([curl, &promise]() {
-            	promise.set_value(response_code);
 
-            auto res = curl_easy_perform(curl);
+            std::thread req([curl, &promise]() {
+              auto res = curl_easy_perform(curl);
+              long check_code;
+
 
             if(res == CURLE_OK) {
 
-              	promise.set_value(curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code));
+              curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &check_code)
+              promise.set_value(check_code);
+                
             }
           });
 
             req.detach();
 
-            response_code = resp.get();
+            auto response_code = resp.get();
 
             std::cout << "Response code: " << response_code << std::endl;
 
