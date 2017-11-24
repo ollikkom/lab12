@@ -23,7 +23,8 @@ int main(int argc, char* argv[])
 
 std::promise<long> promise;
             auto resp = promise.get_future();
-
+            long response_code;
+            
             std::thread req([curl, &promise]() {
             	promise.set_value(response_code);
 
